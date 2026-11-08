@@ -3,3 +3,5 @@ export { Checkpoints, CheckpointConflict } from "./checkpoints.ts";
 export { consume } from "./consumer.ts";
 export type { Handler } from "./consumer.ts";
 export type { EventRecord, Position } from "./model.ts";
+export { consumeOrPark } from "./parking.ts";
+export type { FailedDelivery, ParkingSink } from "./parking.ts";
