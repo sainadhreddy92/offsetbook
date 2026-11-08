@@ -25,8 +25,18 @@ Consume calls the handler in offset order and advances the checkpoint after each
 
 The event log and checkpoint book are in memory. To resume in a new process, persist the JSON from `book.serialize()`, reconstruct the same source stream, and initialize the consumer with `Checkpoints.restore(json)`. Group names and partition names are independent, opaque strings.
 
+## Parking failed events
+
+`consumeOrPark` works like `consume`, but when the handler throws it passes the failure to a parking sink you supply (for example, one that writes to a dead-letter table) and continues with the next event. It resolves with `{ handled, parked }`, whereas `consume` resolves with the number of events read.
+
+- A record is acknowledged only after the handler succeeds or the sink's promise resolves. If the sink rejects, the error propagates, processing stops, and the record stays eligible for redelivery.
+- Once parked, a record is never delivered again. Replaying parked records is up to the sink's owner.
+- The sink receives `{ group, record, reason }`. `record.value` is the original payload and `reason` is exactly what the handler threw, which may not be an `Error`. Nothing is redacted, so sinks that write to shared storage should redact secrets themselves.
+- Delivery is at least once, so a sink may see the same record more than once. Ignore duplicates keyed on group, partition and offset.
+
 ## Modules
 
 - `src/log.ts` assigns zero-based offsets and reads bounded slices.
 - `src/checkpoints.ts` owns checkpoint comparisons and snapshot persistence.
 - `src/consumer.ts` connects the log and book to an asynchronous handler.
+- `src/parking.ts` routes handler failures to a parking sink.
