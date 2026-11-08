@@ -1,0 +1,9 @@
+{
+  "name": "offsetbook",
+  "version": "0.1.0",
+  "description": "Checkpoint tracking for partitioned event consumers",
+  "type": "module",
+  "engines": { "node": ">=24" },
+  "exports": "./src/index.ts",
+  "scripts": { "test": "node --test test/*.test.ts" }
+}
